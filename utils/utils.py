@@ -46,9 +46,6 @@ def load_image(path, size):
 
 def get_imagenet_data(size=224):
     base_dir = os.path.dirname(__file__)
-    ape = os.listdir(os.path.join(base_dir, "images"))
-    print("ape", ape)
-    print("base_dir", base_dir)
     # ImageNet 2012 validation set images?
     with open(os.path.join(base_dir, "images", "ground_truth_val2012")) as f:
         ground_truth_val2012 = {x.split()[0]: int(x.split()[1])

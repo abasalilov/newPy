@@ -29,7 +29,7 @@ imgnetutils = imp.load_source(
 tmp = getattr(innvestigate.applications.imagenet,
               os.environ.get("NETWORKNAME", "vgg16"))
 net = tmp(load_weights=True, load_patterns="relu")
-model = keras.models.load_model("compareMethods.h5")
+model = keras.models.load_model("./models/compareMethods.h5")
 patterns = net["patterns"]
 input_range = net["input_range"]
 noise_scale = (input_range[1]-input_range[0]) * 0.1
@@ -116,7 +116,7 @@ def runUsingModel():
 def getImage(url):
     urllib.request.urlretrieve(
         url, "utils/images/n02799071_986.jpg")
-    print("start next")
+    return True
 
 
 getImage("https://www.armytimes.com/resizer/fHaORr_V3wCVnEGj36XGrOfomUY=/1200x0/filters:quality(100)/arc-anglerfish-arc2-prod-mco.s3.amazonaws.com/public/2FFY4HEYTZBDBKU7LW2EN6T774.jpg")
