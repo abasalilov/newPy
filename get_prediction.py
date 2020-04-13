@@ -18,6 +18,8 @@ import imp
 import threading
 from functools import wraps
 import urllib
+import asyncio
+
 
 # Use utility libraries to focus on relevant iNNvestigate routines.
 eutils = imp.load_source(
@@ -25,14 +27,6 @@ eutils = imp.load_source(
 imgnetutils = imp.load_source(
     "utils_imagenet", "/Users/aleks/Desktop/qv/newPy/utils/utils_imagenet.py")
 
-# Load the model definition.
-tmp = getattr(innvestigate.applications.imagenet,
-              os.environ.get("NETWORKNAME", "vgg16"))
-net = tmp(load_weights=True, load_patterns="relu")
-model = keras.models.load_model("./models/compareMethods.h5")
-patterns = net["patterns"]
-input_range = net["input_range"]
-noise_scale = (input_range[1]-input_range[0]) * 0.1
 
 # Methods we use and some properties.
 methods = [
@@ -44,9 +38,9 @@ methods = [
     # Function
     ("gradient",              {"postprocess": "abs"},
      imgnetutils.graymap,       "Gradient"),
-    ("smoothgrad",            {"augment_by_n": 64,
-                               "noise_scale": noise_scale,
-                               "postprocess": "square"}, imgnetutils.graymap,       "SmoothGrad"),
+    # ("smoothgrad",            {"augment_by_n": 64,
+    #                            "noise_scale": noise_scale,
+    #                            "postprocess": "square"}, imgnetutils.graymap,       "SmoothGrad"),
 
     # # Signal
     # ("deconvnet",             {},
@@ -77,11 +71,47 @@ methods = [
 
 
 def runUsingModel():
+    # Load the model definition.
+    tmp = getattr(innvestigate.applications.imagenet,
+                  os.environ.get("NETWORKNAME", "vgg16"))
+
+    net = tmp(load_weights=True, load_patterns="relu")
+    model = keras.models.load_model("./models/compareMethods.h5")
+    model._make_predict_function()
+    patterns = net["patterns"]
+    input_range = net["input_range"]
+    noise_scale = (input_range[1]-input_range[0]) * 0.1
+    tmp = getattr(innvestigate.applications.imagenet,
+                  os.environ.get("NETWORKNAME", "vgg16"))
+    net = tmp(load_weights=True, load_patterns="relu")
+    model = keras.models.load_model("./models/compareMethods.h5")
+    model._make_predict_function()
+    patterns = net["patterns"]
+    input_range = net["input_range"]
+    noise_scale = (input_range[1]-input_range[0]) * 0.1
+
+    # Methods we use and some properties.
+    methods = [
+        # NAME                    OPT.PARAMS                POSTPROC FXN                TITLE
+        # Show input.
+        ("input",                 {},
+         imgnetutils.image,         "Input"),
+
+        # Function
+        ("gradient",              {"postprocess": "abs"},
+         imgnetutils.graymap,       "Gradient"),
+        ("smoothgrad",            {"augment_by_n": 64,
+                                   "noise_scale": noise_scale,
+                                   "postprocess": "square"}, imgnetutils.graymap,       "SmoothGrad"),
+    ]
+    print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~start")
     images, label_to_class_name = eutils.get_imagenet_data(
         net["image_shape"][0])
-
+    print(images)
+    print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~next")
     model_wo_softmax = iutils.keras.graph.model_wo_softmax(model)
-    # Create analyzers.
+    print("~~~~~~~~~~~~~~~~~~~~~~model", model_wo_softmax)
+  # Create analyzers.
     analyzers = []
     for method in methods:
         try:
@@ -100,7 +130,9 @@ def runUsingModel():
         x = x[None, :, :, :]
         x_pp = imgnetutils.preprocess(x, net)
         # Predict final activations, probabilites, and label.
+        print('~~~~>x_pp pre')
         presm = model_wo_softmax.predict_on_batch(x_pp)[0]
+        print('~~~~>x_pp', presm)
         prob = model.predict_on_batch(x_pp)[0]
         y_hat = prob.argmax()
         # Save prediction info:
@@ -109,7 +141,7 @@ def runUsingModel():
             "%.2f" % prob.max(),              # probabilistic softmax output
             "%s" % label_to_class_name[y_hat]  # predicted label
         ))
-
+    print("text", text)
     return text
 
 
@@ -119,6 +151,5 @@ def getImage(url):
     return True
 
 
-getImage("https://www.armytimes.com/resizer/fHaORr_V3wCVnEGj36XGrOfomUY=/1200x0/filters:quality(100)/arc-anglerfish-arc2-prod-mco.s3.amazonaws.com/public/2FFY4HEYTZBDBKU7LW2EN6T774.jpg")
-answer = runUsingModel()
-print(answer)
+# getImage("https://image.shutterstock.com/image-photo/gulf-thailand-15-dec-2016-260nw-537533695.jpg")
+# runUsingModel()

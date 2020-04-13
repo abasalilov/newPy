@@ -1,8 +1,9 @@
 
 import numpy as np
+import asyncio
 from flask import Flask, request, jsonify, render_template
 
-from getPrediction import getImage, getPrediction
+import get_prediction
 
 app = Flask(__name__)
 
@@ -14,24 +15,17 @@ def home():
 
 @app.route('/predict', methods=['POST'])
 def predict():
-    prediction = {}
-    url = request.get_json(force=True)
-    print('url', url)
-    imageReady = getImage(url)
-    prediction = getPrediction()
-    output = prediction
-
-    return render_template('index.html', prediction_text='Sales should be $ {}'.format(output))
-
-
-@app.route('/results', methods=['POST'])
-def results():
-
+    prediction = "~~~~~~~~~~here"
     data = request.get_json(force=True)
-    prediction = 'model.predict([np.array(list(data.values()))])'
+    url = data['url']
+    # return render_template('index.html', prediction_text='Sales should be $ {}'.format(output))
+    return jsonify(get_prediction.getImage(url))
 
-    output = prediction[0]
-    return jsonify(output)
+
+@app.route('/get-prediction', methods=['POST'])
+def results():
+    print('data')
+    return jsonify(get_prediction.runUsingModel())
 
 
 if __name__ == "__main__":
