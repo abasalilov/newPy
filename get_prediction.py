@@ -104,13 +104,9 @@ def runUsingModel():
                                    "noise_scale": noise_scale,
                                    "postprocess": "square"}, imgnetutils.graymap,       "SmoothGrad"),
     ]
-    print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~start")
     images, label_to_class_name = eutils.get_imagenet_data(
         net["image_shape"][0])
-    print(images)
-    print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~next")
     model_wo_softmax = iutils.keras.graph.model_wo_softmax(model)
-    print("~~~~~~~~~~~~~~~~~~~~~~model", model_wo_softmax)
   # Create analyzers.
     analyzers = []
     for method in methods:
@@ -130,9 +126,7 @@ def runUsingModel():
         x = x[None, :, :, :]
         x_pp = imgnetutils.preprocess(x, net)
         # Predict final activations, probabilites, and label.
-        print('~~~~>x_pp pre')
         presm = model_wo_softmax.predict_on_batch(x_pp)[0]
-        print('~~~~>x_pp', presm)
         prob = model.predict_on_batch(x_pp)[0]
         y_hat = prob.argmax()
         # Save prediction info:
@@ -141,7 +135,6 @@ def runUsingModel():
             "%.2f" % prob.max(),              # probabilistic softmax output
             "%s" % label_to_class_name[y_hat]  # predicted label
         ))
-    print("text", text)
     return text
 
 
